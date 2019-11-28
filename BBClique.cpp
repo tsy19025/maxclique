@@ -142,9 +142,6 @@ int main() {
 		++d[u], ++d[v];
 		mat2[u][v] = mat2[v][u] = true;
 	}
-	for (int i = 0; i < n; ++i)
-		for (int j = 0; j < n; ++j)
-			if (!mat2[i][j]) mat[i][j] = false;
 	sort(index, index + n, cmp);
 	for (int i = 0 ; i < n; ++i) {
 		index2[index[i]] = i;
