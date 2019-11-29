@@ -5,7 +5,7 @@
 using namespace std;
 const int MAXN = 805, MAXL = 26;
 
-int pos[MAXN][2], p[MAXL], n, nlog, curmax;
+unsigned int pos[MAXN][2], p[32], n, nlog, curmax;
 
 inline int ones_number(unsigned int n) {
 	int ans = 0;
@@ -20,8 +20,15 @@ struct Bitset {
 	unsigned int num[MAXL];
 	Bitset(){memset(num, 0, sizeof num);}
 	void init(bool a[]) {
-		for (int i = 0; i < n; ++i)
-			if (a[i]) num[pos[i][0]] |= p[pos[i][1]];
+		for (int i = 0; i < n; ++i) {
+			//printf(a[i]?"1 ":"0 ");
+			if (a[i]) {
+				num[pos[i][0]] |= p[pos[i][1]];
+				//printf("%d %d %d %u\n", i, pos[i][0], pos[i][1], p[pos[i][1]]);
+			}
+		}
+		//puts("");
+		//printf("%u\n", num[0]);
 	}
 	bool is_zeros() {
 		for (int i = 0; i < nlog; ++i) if (num[i]) return false;
@@ -71,11 +78,11 @@ struct Bitset {
 int q_bb[MAXN], c_k[MAXN];
 void BBColor(Bitset P, int u[], int c[]) {
 	Bitset Q;
-	for (int k = 0, col = 0, v; !P.is_zeros(); ++col) {
+	for (int k = 0, col = 1, v; !P.is_zeros(); ++col) {
 		Q = P;
 		while (!Q.is_zeros()) {
 			v = Q.nextbit();
-			// printf("%d***\n", v);
+			//printf("%d***\n", v);
 			P.set(v, false);
 			Q.set(v, false);
 			Q &= invn[v];
@@ -91,7 +98,7 @@ void save(Bitset C) {
 }
 
 void BBClique(Bitset C, Bitset P) {
-	// printf("%d\n", C.get_one_number());
+	//printf("%d\n", C.get_one_number());
 	int m = P.get_one_number();
 	int u[m], c[m];
 	BBColor(P, u, c);
@@ -99,6 +106,7 @@ void BBClique(Bitset C, Bitset P) {
 		if (c[i] + C.get_one_number() <= curmax) return;
 		Bitset Q = P;
 		v = u[i];
+		//printf("%d ******\n", v);
 		C.set(v, true);
 		Q &= neighbor[v];
 		if (Q.is_zeros() && C.get_one_number() > curmax) save(C);
@@ -118,7 +126,7 @@ void init() {
 		}
 	}
 	p[0] = 1;
-	for (int i = 1; i < MAXL; ++i) p[i] = p[i - 1] << 1;
+	for (int i = 1; i < 32; ++i) p[i] = p[i - 1] << 1;
 }
 
 bool mat[MAXN][MAXN], mat2[MAXN][MAXN];
@@ -138,10 +146,12 @@ int main() {
 	while (m--) {
 		static int u, v;
 		scanf("%d%d", &u, &v);
+		if (u > n || v > n) continue;
 		--u, --v;
 		++d[u], ++d[v];
 		mat2[u][v] = mat2[v][u] = true;
 	}
+	
 	sort(index, index + n, cmp);
 	for (int i = 0 ; i < n; ++i) {
 		index2[index[i]] = i;
@@ -149,18 +159,22 @@ int main() {
 	
 	for (int i = 0; i < n; ++i) {
 		for (int j = i; j < n; ++j)
-			if (mat2[i][j]) {
+			{
 				static int u, v;
 				u = index2[i], v = index2[j];
-				mat[u][v] = mat[v][u] = true;
+				mat[u][v] = mat[v][u] = mat2[i][j];
 			}
 	}
+	
 	for (int i = 0; i < n; ++i) {
 		neighbor[i].init(mat[i]);
 		for (int j = 0; j < n; ++j) mat[i][j] = !mat[i][j];
 		mat[i][i] = false;
 		invn[i].init(mat[i]);
 	}
+	//for (int i = 0; i < n; ++i)
+	//	printf("%u\n", neighbor[i].num[0]);
+	//return 0;
 	
 	Bitset C, P;
 	bool tmp[n];

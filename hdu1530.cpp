@@ -3,9 +3,9 @@
 #include <cstdio>
 #include <cstring>
 using namespace std;
-const int MAXN = 50, MAXL = 5;
+const int MAXN = 55, MAXL = 5;
 
-int pos[MAXN][2], p[MAXL], n, nlog, curmax;
+int pos[MAXN][2], p[32], n, nlog, curmax;
 
 inline int ones_number(unsigned int n) {
 	int ans = 0;
@@ -71,11 +71,10 @@ struct Bitset {
 int q_bb[MAXN], c_k[MAXN];
 void BBColor(Bitset P, int u[], int c[]) {
 	Bitset Q;
-	for (int k = 0, col = 0, v; !P.is_zeros(); ++col) {
+	for (int k = 0, col = 1, v; !P.is_zeros(); ++col) {
 		Q = P;
 		while (!Q.is_zeros()) {
 			v = Q.nextbit();
-			// printf("%d***\n", v);
 			P.set(v, false);
 			Q.set(v, false);
 			Q &= invn[v];
@@ -91,7 +90,7 @@ void save(Bitset C) {
 }
 
 void BBClique(Bitset C, Bitset P) {
-	// printf("%d\n", C.get_one_number());
+	//printf("%d\n", C.get_one_number());
 	int m = P.get_one_number();
 	int u[m], c[m];
 	BBColor(P, u, c);
@@ -118,7 +117,7 @@ void init() {
 		}
 	}
 	p[0] = 1;
-	for (int i = 1; i < MAXL; ++i) p[i] = p[i - 1] << 1;
+	for (int i = 1; i < 32; ++i) p[i] = p[i - 1] << 1;
 }
 
 bool mat[MAXN][MAXN], mat2[MAXN][MAXN];
@@ -128,6 +127,7 @@ bool cmp(int v, int u) { return d[v] < d[u];}
 
 int main() {
 	while (~scanf("%d", &n) && n) {
+		curmax = 1;
 		init();
 		nlog = (n - 1) / 32 + 1;
 		for (int i = 0; i < n; ++i) for (int j = 0; j < n; ++j) {
@@ -142,10 +142,10 @@ int main() {
 		
 		for (int i = 0; i < n; ++i) {
 			for (int j = i; j < n; ++j)
-				if (mat2[i][j]) {
+				{
 					static int u, v;
 					u = index2[i], v = index2[j];
-					mat[u][v] = mat[v][u] = true;
+					mat[u][v] = mat[v][u] = mat2[i][j];
 				}
 		}
 		for (int i = 0; i < n; ++i) {
