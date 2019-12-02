@@ -2,6 +2,7 @@
 #include <iostream>
 #include <cstdio>
 #include <cstring>
+#include <cstdlib>
 using namespace std;
 const int MAXN = 805, MAXL = 26;
 
@@ -73,6 +74,11 @@ struct Bitset {
 		for (int i = 0; i < nlog; ++i) ans.num[i] = ~ans.num[i];
 		return ans;
 	}
+	void out() {
+		for (int i = 0; i < nlog; ++i)
+			printf("%u ", num[i]);
+		puts("");
+	}
 }neighbor[MAXN], invn[MAXN], ans;
 
 int q_bb[MAXN], c_k[MAXN];
@@ -98,7 +104,8 @@ void save(Bitset C) {
 }
 
 void BBClique(Bitset C, Bitset P) {
-	//printf("%d\n", C.get_one_number());
+	
+	//printf("%d %d\n", C.get_one_number(), P.get_one_number());
 	int m = P.get_one_number();
 	int u[m], c[m];
 	BBColor(P, u, c);
@@ -106,7 +113,14 @@ void BBClique(Bitset C, Bitset P) {
 		if (c[i] + C.get_one_number() <= curmax) return;
 		Bitset Q = P;
 		v = u[i];
-		//printf("%d ******\n", v);
+		/*if (C.get_one_number() == 4 && P.get_one_number() == 10) {
+			C.set(v, true);
+			Q &= neighbor[v];
+			C.out();
+			Q.out();
+			exit(0);
+		}
+		printf("%d ******\n", v);*/
 		C.set(v, true);
 		Q &= neighbor[v];
 		if (Q.is_zeros() && C.get_one_number() > curmax) save(C);
@@ -135,8 +149,8 @@ int d[MAXN], index[MAXN], index2[MAXN];
 bool cmp(int v, int u) { return d[v] < d[u];}
 
 int main() {
-	puts("???");
-	freopen("test.clq", "r", stdin);
+	freopen("test.txt", "r", stdin);
+	freopen("ans1.txt", "w", stdout);
 	int m;
 	scanf("%d%d", &n, &m);
 	init();
@@ -167,21 +181,23 @@ int main() {
 	}
 	
 	for (int i = 0; i < n; ++i) {
+		mat[i][i] = false;
 		neighbor[i].init(mat[i]);
 		for (int j = 0; j < n; ++j) mat[i][j] = !mat[i][j];
 		mat[i][i] = false;
 		invn[i].init(mat[i]);
 	}
-	//for (int i = 0; i < n; ++i)
-	//	printf("%u\n", neighbor[i].num[0]);
+	/*for (int i = 0; i < n; ++i) {
+		printf("%d: ", i);
+		neighbor[i].out();
+	}*/
 	//return 0;
 	
 	Bitset C, P;
 	bool tmp[n];
 	for (int i = 0; i < n; ++i) tmp[i] = true;
 	P.init(tmp);
-	
-	puts("begin");
+
 	BBClique(C, P);
 	printf("%d\n", curmax);
 	return 0;
