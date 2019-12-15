@@ -2,13 +2,12 @@
 #include <iostream>
 #include <cstdio>
 #include <cstring>
-#include <ctime>
 using namespace std;
-const int MAXN = 1005, MAXL = 32;
-// int MV = 100000000;
+const int MAXN = 755, MAXL = 25;
+long long MV;
 
-clock_t startTime, endTime;
 unsigned int pos[MAXN][2], p[32], n, nlog, curmax = 1;
+bool flag_end;
 
 inline int ones_number(unsigned int n) {
     int ans = 0;
@@ -21,11 +20,12 @@ inline int ones_number(unsigned int n) {
 
 struct Bitset {
     unsigned int num[MAXL];
-    Bitset(){memset(num, 0, sizeof num);}
+    Bitset(){clear();}
+	void clear() {memset(num, 0, sizeof num);}
     void init(bool a[]) {
+		clear();
         for (int i = 0; i < n; ++i)
-            if (a[i])
-                num[pos[i][0]] |= p[pos[i][1]];
+            if (a[i]) num[pos[i][0]] |= p[pos[i][1]];
     }
     inline bool is_zeros() {
         for (int i = 0; i < nlog; ++i) if (num[i]) return false;
@@ -66,7 +66,7 @@ struct Bitset {
 }neighbor[MAXN], invn[MAXN], ans;
 
 inline void outans() {
-    printf("%d\n", curmax);
+	printf("%d\n", curmax);
     bool flag = true;
     for (int i = 0; i < n; ++i) {
         if(ans.num[pos[i][0]] & p[pos[i][1]]) {
@@ -74,18 +74,18 @@ inline void outans() {
             else printf(" %d", i + 1);
         }
     }
-    exit(0);
+	puts("");
+    flag_end = true;
 }
 
-int tot;
 int q_bb[MAXN], c_k[MAXN];
 void BBColor(Bitset P, int u[], int c[]) {
     Bitset Q;
     for (int k = 0, col = 1, v; !P.is_zeros(); ++col) {
-        // if (tot >= MV) outans();
+        if (MV <= 0) {outans(); return;}
         Q = P;
         while (!Q.is_zeros()) {
-            ++tot;
+			--MV;
             v = Q.nextbit();
             P.set(v, false);
             Q.set(v, false);
@@ -99,18 +99,15 @@ void BBColor(Bitset P, int u[], int c[]) {
 inline void save(Bitset& C) {
     ans = C;
     curmax = ans.get_one_number();
-    printf("save %d\n", curmax);
-    endTime = clock();
-    cout<<(double)(endTime - startTime) / CLOCKS_PER_SEC<<'\n';
 }
 
 void BBClique(Bitset C, Bitset P) {
-    //if (tot >= MV) outans();
+	if (MV <= 0) {outans(); return;}
     int m = P.get_one_number();
     int u[m], c[m];
     BBColor(P, u, c);
-    for (int i = m - 1, v; ~i; --i) {
-        ++tot;
+    for (int i = m - 1, v; ~i && !flag_end; --i) {
+		--MV;
         if (c[i] + C.get_one_number() <= curmax) return;
         Bitset Q = P;
         v = u[i];
@@ -133,46 +130,45 @@ void init() {
             cnt1 = 0;
         }
     }
-    p[0] = 1;
-    for (int i = 1; i < 32; ++i) p[i] = p[i - 1] << 1;
 }
 
 bool mat[MAXN][MAXN];
-int d[MAXN], index[MAXN], index2[MAXN];
-
-bool cmp(int v, int u) { return d[v] < d[u];}
 
 int main() {
-    startTime = clock();
-    char s[4];
-    freopen("data/frb30-15-1.clq", "r", stdin);
-    int m;
-    scanf("%s", s);
-    scanf("%s%d%d", s, &n, &m);
-    init();
-    nlog = (n - 1) / 32 + 1;
-    //MV /= nlog;
+	p[0] = 1;
+    for (int i = 1; i < 32; ++i) p[i] = p[i - 1] << 1;
+	int m;
+	while(~scanf("%d%d", &n, &m)) {
+		init();
+		nlog = (n - 1) / 32 + 1;
+		MV = 80000000000ll;
+		MV /= nlog;
+		
+		memset(mat, 0, sizeof mat);
+		flag_end = false;
+		curmax = 0, ans.clear();
+		while (m--) {
+			static int u, v;
+			scanf("%d%d", &u, &v);
+			--u, --v;
+			mat[u][v] = mat[v][u] = true;
+		}
 
-    //curmax = 44;
-    while (m--) {
-        static int u, v;
-        scanf("%s%d%d", s, &u, &v);
-        --u, --v;
-        mat[u][v] = mat[v][u] = true;
-    }
+		for (int i = 0; i < n; ++i) {
+			mat[i][i] = false;
+			neighbor[i].init(mat[i]);
+			for (int j = 0; j < n; ++j) mat[i][j] = !mat[i][j];
+			mat[i][i] = false;
+			invn[i].init(mat[i]);
+		}
 
-    for (int i = 0; i < n; ++i) {
-        neighbor[i].init(mat[i]);
-        for (int j = 0; j < n; ++j) mat[i][j] = !mat[i][j];
-        mat[i][i] = false;
-        invn[i].init(mat[i]);
-    }
+		Bitset C, P;
+		bool tmp[n];
+		for (int i = 0; i < n; ++i) tmp[i] = true;
+		P.init(tmp);
 
-    Bitset C, P;
-    bool tmp[n];
-    for (int i = 0; i < n; ++i) tmp[i] = true;
-    P.init(tmp);
-
-    BBClique(C, P);
-    outans();
+		BBClique(C, P);
+		if (!flag_end) outans();	
+	}
+	return 0;
 }
